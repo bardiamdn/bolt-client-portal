@@ -11,6 +11,8 @@ export interface Project {
   icon_bg: string;
   start_date: string;
   end_date: string;
+  start_date: string;
+  end_date: string;
   company: {
     id: string;
     name: string;

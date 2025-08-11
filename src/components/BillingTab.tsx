@@ -2,6 +2,7 @@ import React from 'react';
 import { useState } from 'react';
 import { Download, Eye, Calendar, X } from 'lucide-react';
 import { useInvoices } from '../hooks/useInvoices';
+import { useStripe } from '../hooks/useStripe';
 
 interface BillingTabProps {
   projectId: string;
@@ -19,7 +20,9 @@ const getStatusColor = (status: string) => {
 
 export default function BillingTab({ projectId }: BillingTabProps) {
   const { invoices, loading, error, getBillingSummary } = useInvoices(projectId);
+  const { createCheckoutSession } = useStripe();
   const [viewingInvoice, setViewingInvoice] = useState<any>(null);
+  const [payingInvoice, setPayingInvoice] = useState<string | null>(null);
 
   const handleViewInvoice = (invoice: any) => {
     setViewingInvoice(invoice);
@@ -164,6 +167,42 @@ export default function BillingTab({ projectId }: BillingTabProps) {
     }, 1000);
   };
 
+  const handlePayInvoice = async (invoice: any) => {
+    setPayingInvoice(invoice.id);
+    try {
+      // Create a dynamic price for this invoice amount
+      const baseUrl = window.location.origin;
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-checkout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({
+          invoice_id: invoice.id,
+          amount: Math.round(invoice.amount * 100), // Convert to cents
+          currency: 'usd',
+          description: `Payment for Invoice ${invoice.number}`,
+          mode: 'payment',
+          success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}&invoice_id=${invoice.id}`,
+          cancel_url: `${baseUrl}/?tab=billing`,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create payment session');
+      }
+
+      const { url } = await response.json();
+      window.location.href = url;
+    } catch (err) {
+      console.error('Payment error:', err);
+      alert('Failed to start payment process. Please try again.');
+    } finally {
+      setPayingInvoice(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -287,6 +326,16 @@ export default function BillingTab({ projectId }: BillingTabProps) {
                           >
                             <Download size={16} />
                           </button>
+                          {(invoice.status === 'pending' || invoice.status === 'overdue') && (
+                            <button 
+                              onClick={() => handlePayInvoice(invoice)}
+                              disabled={payingInvoice === invoice.id}
+                              className="px-3 py-1 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Pay Invoice"
+                            >
+                              {payingInvoice === invoice.id ? 'Processing...' : 'Pay'}
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

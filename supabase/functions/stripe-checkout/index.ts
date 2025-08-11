@@ -43,17 +43,36 @@ Deno.serve(async (req) => {
       return corsResponse({ error: 'Method not allowed' }, 405);
     }
 
-    const { price_id, success_url, cancel_url, mode } = await req.json();
+    const { price_id, amount, currency, description, success_url, cancel_url, mode } = await req.json();
 
-    const error = validateParameters(
-      { price_id, success_url, cancel_url, mode },
-      {
-        cancel_url: 'string',
-        price_id: 'string',
-        success_url: 'string',
-        mode: { values: ['payment', 'subscription'] },
-      },
-    );
+    // For subscription mode, price_id is required
+    // For payment mode, either price_id OR (amount + currency + description) is required
+    let error;
+    if (mode === 'subscription') {
+      error = validateParameters(
+        { price_id, success_url, cancel_url, mode },
+        {
+          cancel_url: 'string',
+          price_id: 'string',
+          success_url: 'string',
+          mode: { values: ['payment', 'subscription'] },
+        },
+      );
+    } else {
+      // Payment mode - validate either price_id or amount/currency/description
+      if (!price_id && (!amount || !currency || !description)) {
+        error = 'For payment mode, either price_id or amount+currency+description is required';
+      } else {
+        error = validateParameters(
+          { success_url, cancel_url, mode },
+          {
+            cancel_url: 'string',
+            success_url: 'string',
+            mode: { values: ['payment', 'subscription'] },
+          },
+        );
+      }
+    }
 
     if (error) {
       return corsResponse({ error }, 400);
@@ -177,16 +196,36 @@ Deno.serve(async (req) => {
       }
     }
 
-    // create Checkout Session
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      payment_method_types: ['card'],
-      line_items: [
+    // Create line items based on whether we have a price_id or amount/currency/description
+    let lineItems;
+    if (price_id) {
+      lineItems = [
         {
           price: price_id,
           quantity: 1,
         },
-      ],
+      ];
+    } else {
+      // Create line item with price_data for one-time payments
+      lineItems = [
+        {
+          price_data: {
+            currency: currency,
+            unit_amount: amount,
+            product_data: {
+              name: description,
+            },
+          },
+          quantity: 1,
+        },
+      ];
+    }
+
+    // create Checkout Session
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      payment_method_types: ['card'],
+      line_items: lineItems,
       mode,
       success_url,
       cancel_url,

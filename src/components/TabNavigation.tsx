@@ -14,13 +14,13 @@ interface TabNavigationProps {
 export default function TabNavigation({ tabs, activeTab, onTabChange }: TabNavigationProps) {
   return (
     <div className="bg-white border-b border-gray-200">
-      <div className="px-8">
-        <nav className="flex space-x-8">
+      <div className="px-4 lg:px-8">
+        <nav className="flex space-x-4 lg:space-x-8 overflow-x-auto">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
                 activeTab === tab.id
                   ? 'border-purple-600 text-purple-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'

@@ -10,7 +10,7 @@ interface ProjectHeaderProps {
 
 export default function ProjectHeader({ title, description, progress, icon, iconBg }: ProjectHeaderProps) {
   return (
-    <div className="bg-white border-b border-gray-200 px-8 py-6">
+    <div className="bg-white border-b border-gray-200 px-4 lg:px-8 py-6">
       <div className="flex items-start space-x-4">
         <div className={`w-12 h-12 ${iconBg} rounded-full flex items-center justify-center text-white text-xl font-bold`}>
           {icon}

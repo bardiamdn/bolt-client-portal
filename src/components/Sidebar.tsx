@@ -2,9 +2,9 @@ import React from 'react';
 import { 
   LayoutDashboard, 
   User, 
-  ChevronDown,
   CreditCard,
-  LogOut
+  LogOut,
+  X
 } from 'lucide-react';
 import { Project } from '../hooks/useProjects';
 import { useAuth } from '../hooks/useAuth';
@@ -14,15 +14,28 @@ interface SidebarProps {
   projects: Project[];
   selectedProject: string;
   onProjectSelect: (projectId: string) => void;
+  onClose?: () => void;
 }
 
-export default function Sidebar({ projects, selectedProject, onProjectSelect }: SidebarProps) {
+export default function Sidebar({ projects, selectedProject, onProjectSelect, onClose }: SidebarProps) {
   const { user, signOut } = useAuth();
 
   return (
     <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col">
+      {/* Mobile close button */}
+      {onClose && (
+        <div className="lg:hidden flex justify-end p-4">
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+      )}
+      
       {/* Logo */}
-      <div className="p-6 border-b border-gray-100">
+      <div className={`p-6 border-b border-gray-100 ${onClose ? 'lg:pt-6 pt-2' : ''}`}>
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
             <div className="w-4 h-4 bg-white rounded-sm transform rotate-45"></div>

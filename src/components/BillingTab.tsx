@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Download, Eye, Calendar, X } from 'lucide-react';
 import { useInvoices } from '../hooks/useInvoices';
 import { useStripe } from '../hooks/useStripe';
+import { supabase } from '../lib/supabase';
 
 interface BillingTabProps {
   projectId: string;

@@ -86,11 +86,11 @@ export default function Sidebar({ projects, selectedProject, onProjectSelect, on
             ))}
           </div>
         </div>
+      </div>
 
-        {/* Subscription Status */}
-        <div className="px-4 mb-4">
-          <SubscriptionStatus />
-        </div>
+      {/* Subscription Status */}
+      <div className="px-4 mb-4">
+        <SubscriptionStatus />
       </div>
 
       {/* User Profile */}

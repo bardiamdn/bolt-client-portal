@@ -1,12 +1,11 @@
 import React from 'react';
 import { LogOut, Briefcase, Users, Calendar, ArrowRight, CheckCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { useProjects } from '../hooks/useProjects';
 
 export default function WelcomePage() {
   const { user, signOut, createSampleProjects } = useAuth();
-  const { projects, loading: projectsLoading } = useProjects();
   const [creatingProjects, setCreatingProjects] = React.useState(false);
+  const [projectsCreated, setProjectsCreated] = React.useState(false);
 
   const handleContinueToDashboard = () => {
     // Force a page refresh to reload projects
@@ -17,17 +16,15 @@ export default function WelcomePage() {
     setCreatingProjects(true);
     try {
       await createSampleProjects();
-      // After creation, reload the page to show the dashboard
-      window.location.reload();
+      setProjectsCreated(true);
     } catch (error) {
       console.error('Error creating sample projects:', error);
+    } finally {
       setCreatingProjects(false);
     }
   };
 
-  // If we have projects, show success state
-  const hasProjects = projects.length > 0;
-  const isLoading = projectsLoading || creatingProjects;
+  const isLoading = creatingProjects;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -103,7 +100,7 @@ export default function WelcomePage() {
 
         {/* Getting Started */}
         <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-          {hasProjects ? (
+          {projectsCreated ? (
             <>
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle size={32} className="text-green-600" />

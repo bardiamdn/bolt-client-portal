@@ -45,12 +45,6 @@ export function useAuth() {
       }
     });
     if (error) setError(error.message);
-    
-    // If signup successful, create sample projects
-    if (!error) {
-      await createSampleProjects();
-    }
-    
     return { error };
   };
 
@@ -287,6 +281,7 @@ export function useAuth() {
     error, 
     signIn, 
     signUp, 
-    signOut 
+    signOut,
+    createSampleProjects
   };
 }

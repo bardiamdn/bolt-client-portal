@@ -1,14 +1,35 @@
 import React from 'react';
-import { LogOut, Briefcase, Users, Calendar, ArrowRight } from 'lucide-react';
+import { LogOut, Briefcase, Users, Calendar, ArrowRight, CheckCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useProjects } from '../hooks/useProjects';
 
 export default function WelcomePage() {
   const { user, signOut } = useAuth();
+  const { projects, loading: projectsLoading } = useProjects();
+  const [creatingProjects, setCreatingProjects] = React.useState(false);
+
+  const handleContinueToDashboard = () => {
+    // Force a page refresh to reload projects
+    window.location.reload();
+  };
 
   const handleCreateSampleProjects = async () => {
-    // Force refresh to load the newly created projects
-    window.location.href = '/';
+    setCreatingProjects(true);
+    try {
+      // Import the createSampleProjects function from useAuth
+      const { createSampleProjects } = useAuth();
+      await createSampleProjects();
+      // After creation, reload the page to show the dashboard
+      window.location.reload();
+    } catch (error) {
+      console.error('Error creating sample projects:', error);
+      setCreatingProjects(false);
+    }
   };
+
+  // If we have projects, show success state
+  const hasProjects = projects.length > 0;
+  const isLoading = projectsLoading || creatingProjects;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -84,26 +105,58 @@ export default function WelcomePage() {
 
         {/* Getting Started */}
         <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Getting Started
-          </h2>
-          <p className="text-gray-600 mb-6">
-            We're creating some sample projects to help you explore the platform. 
-            This will only take a moment.
-          </p>
-          
-          <div className="flex items-center justify-center space-x-2 text-purple-600 mb-6">
-            <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-            <span>Setting up your workspace...</span>
-          </div>
-
-          <button
-            onClick={handleCreateSampleProjects}
-            className="inline-flex items-center space-x-2 px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
-          >
-            <span>Continue to Dashboard</span>
-            <ArrowRight size={16} />
-          </button>
+          {hasProjects ? (
+            <>
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle size={32} className="text-green-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Workspace Ready!
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Your sample projects have been created successfully. You can now explore all the features of the platform.
+              </p>
+              <button
+                onClick={handleContinueToDashboard}
+                className="inline-flex items-center space-x-2 px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                <span>Go to Dashboard</span>
+                <ArrowRight size={16} />
+              </button>
+            </>
+          ) : isLoading ? (
+            <>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Setting Up Your Workspace
+              </h2>
+              <p className="text-gray-600 mb-6">
+                We're creating some sample projects to help you explore the platform. 
+                This will only take a moment.
+              </p>
+              
+              <div className="flex items-center justify-center space-x-2 text-purple-600 mb-6">
+                <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                <span>Setting up your workspace...</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Getting Started
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Let's create some sample projects to help you explore the platform features.
+              </p>
+              <button
+                onClick={handleCreateSampleProjects}
+                disabled={creatingProjects}
+                className="inline-flex items-center space-x-2 px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span>{creatingProjects ? 'Creating Projects...' : 'Create Sample Projects'}</span>
+                <ArrowRight size={16} />
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ import TasksTab from './TasksTab';
 import MessagesTab from './MessagesTab';
 import BillingTab from './BillingTab';
 import { useProjects } from '../hooks/useProjects';
+import WelcomePage from './WelcomePage';
 
 const tabs = [
   { id: 'overview', label: 'Overview' },
@@ -47,11 +48,7 @@ export default function Dashboard() {
 
   if (!currentProject) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">No projects found</p>
-        </div>
-      </div>
+      <WelcomePage />
     );
   }
 

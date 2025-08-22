@@ -1,5 +1,4 @@
-@@ .. @@
- ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
  
 --- Create policy for profiles if it doesn't exist
 -DO $$

@@ -1,4 +1,4 @@
-@@ .. @@
+
  ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
  
 --- Create policies for profiles table

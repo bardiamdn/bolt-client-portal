@@ -56,9 +56,40 @@ export function useAuth() {
 
   const createSampleProjects = async () => {
     try {
-      // Wait a moment for the user to be fully created
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Wait for the user profile to be created by the database trigger
+      let retries = 0;
+      const maxRetries = 10;
+      let userProfile = null;
       
+      while (retries < maxRetries && !userProfile) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          console.error('No user found during sample project creation');
+          return;
+        }
+
+        // Check if user profile exists
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+
+        if (profile) {
+          userProfile = profile;
+          break;
+        }
+
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, 500));
+        retries++;
+      }
+
+      if (!userProfile) {
+        console.error('User profile not found after retries');
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -187,6 +218,54 @@ export function useAuth() {
 
         if (invoiceError) {
           console.error('Error creating sample invoice:', invoiceError);
+        }
+
+        // Create sample messages for the first project
+        const sampleMessages = [
+          {
+            project_id: projects[0].id,
+            sender_id: user.id,
+            content: 'Welcome to the project! Looking forward to working together on this website redesign.'
+          },
+          {
+            project_id: projects[0].id,
+            sender_id: user.id,
+            content: 'I\'ve uploaded the initial wireframes for your review. Please let me know your thoughts!'
+          }
+        ];
+
+        const { error: messagesError } = await supabase
+          .from('messages')
+          .insert(sampleMessages);
+
+        if (messagesError) {
+          console.error('Error creating sample messages:', messagesError);
+        }
+
+        // Create sample files for the first project
+        const sampleFiles = [
+          {
+            project_id: projects[0].id,
+            name: 'Project Requirements Document',
+            type: 'link',
+            url: 'https://docs.google.com/document/d/sample-requirements',
+            uploaded_by: user.id
+          },
+          {
+            project_id: projects[0].id,
+            name: 'Design Inspiration Board',
+            type: 'link',
+            url: 'https://pinterest.com/sample-board',
+            uploaded_by: user.id
+          }
+        ];
+
+        const { error: filesError } = await supabase
+          .from('files')
+          .insert(sampleFiles);
+
+        if (filesError) {
+          console.error('Error creating sample files:', filesError);
         }
       }
 

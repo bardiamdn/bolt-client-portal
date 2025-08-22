@@ -6,8 +6,8 @@ export default function WelcomePage() {
   const { user, signOut } = useAuth();
 
   const handleCreateSampleProjects = async () => {
-    // This will be handled by the signup process
-    window.location.reload();
+    // Force refresh to load the newly created projects
+    window.location.href = '/';
   };
 
   return (
